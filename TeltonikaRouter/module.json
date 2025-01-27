@@ -1,0 +1,13 @@
+{
+	"id": "{270BCBD6-681F-74DF-D20F-CC205ED5E1FC}",
+	"name": "TeltonikaRouter",
+	"type": 3,
+	"vendor": "Teltonika",
+	"aliases": [
+		"Teltonika Router"
+	],
+	"parentRequirements": [],
+	"childRequirements": [],
+	"implemented": [],
+	"prefix": "TR"
+}

@@ -1,0 +1,141 @@
+{
+	"elements": [
+		{
+			"type": "CheckBox",
+			"name": "Active",
+			"caption": "Active"
+		},
+		{
+			"type": "ValidationTextBox",
+			"name": "Host",
+			"caption": "Host"
+		},
+		{
+			"type": "NumberSpinner",
+			"name": "Port",
+			"caption": "Port",
+			"suffix": ""
+		},
+		{
+			"type": "ValidationTextBox",
+			"name": "Username",
+			"caption": "username"
+		},
+		{
+			"type": "PasswordTextBox",
+			"name": "Password",
+			"caption": "password"
+		},
+		{
+			"type": "Select",
+			"name": "Type",
+			"caption": "Type",
+			"options": [
+				{
+					"label": "Firmaware: >7.6.3 (API v1.1)",
+					"value": 0
+				}
+			]
+		},
+		{
+					"type": "CheckBox",
+					"name": "ShowModemInfomation",
+					"caption": "Show Modem Infomation"
+		},
+		{
+					"type": "CheckBox",
+					"name": "ShowFailoverInfomation",
+					"caption": "Show Failover Infomation"
+		},
+		{
+			"type": "NumberSpinner",
+			"name": "Timeout",
+			"caption": "Timeout",
+			"suffix": "s",
+			"minimum": 1,
+			"maximum": 60
+		},
+		{
+			"type": "NumberSpinner",
+			"name": "UpdateInterval",
+			"caption": "Update Interval",
+			"suffix": "s",
+			"minimum": 0
+		},
+		{
+			"type": "ExpansionPanel",
+			"caption": "Encryption settings",
+			"items": [
+				{
+					"type": "CheckBox",
+					"name": "Ssl",
+					"caption": "SSL"
+				},
+				{
+					"type": "CheckBox",
+					"name": "VerifyHost",
+					"caption": "Verify Host"
+				},
+				{
+					"type": "CheckBox",
+					"name": "VerifyPeer",
+					"caption": "Verify Peer"
+				}
+			]
+		}
+	],
+	"actions": [
+		{
+			"type": "Button",
+			"label": "open router confguration",
+			"onClick": "echo TR_GetRouterConfiguratationPage($id);"
+		},
+		{
+			"type": "Button",
+			"label": "Login",
+			"onClick": "echo IPS_RequestAction($id, \"Login\", '');"
+		},
+		{
+			"type": "Button",
+			"label": "Update Values",
+			"onClick": "echo IPS_RequestAction($id, \"UpdateValues\", '');"
+		},
+		{
+			"type": "Button",
+			"label": "Restart",
+			"onClick": "echo IPS_RequestAction($id, \"Reboot\", '');"
+		},
+		{
+			"type": "Button",
+			"label": "FirmwareUpdate FOTA",
+			"onClick": "TR_FirmwareUpdate($id);"
+		}
+	],
+	"status": [
+		{
+			"code": 102,
+			"icon": "active",
+			"caption": "Active"
+		},
+		{
+			"code": 104,
+			"icon": "active",
+			"caption": "Offline"
+		},
+		{
+			"code": 201,
+			"icon": "error",
+			"caption": "Connection failed"
+		},
+		{
+			"code": 202,
+			"icon": "error",
+			"caption": "Authentication failed"
+		},
+		{
+			"code": 203,
+			"icon": "error",
+			"caption": "API Version Conflict"
+		}
+	]
+}
