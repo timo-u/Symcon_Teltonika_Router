@@ -166,3 +166,57 @@ echo json_encode($data->apidata, JSON_PRETTY_PRINT);
 
 ```
 
+#### Abfrage der Regeln in der Firewall für das Portforwarding
+```php
+$Forwardings = TR_GetPortForwardings(12345);
+foreach ($Forwardings as $Forwarding)
+{       
+        echo"Regel: ".$Forwarding->name." ID: ".$Forwarding->id . " Prio: ".$Forwarding->priority ."\r\n" ;
+}
+```
+
+#### Löschen einer Portforwarding-Regel anhand der ID der Regel (achtung String)
+
+```php
+TR_DeletePortForwarding($RouterId,strval(RuleId));
+```
+
+#### Hinzufügen einer Portforwarding-Regel 
+
+```php
+$data = array(
+        "name"=> "Kamera_Garten", 		// Name für die Portweiterleitung
+        "proto"=> array("tcp"),			// Protokoll
+        "src_dport"=> "80",				// Externer Port
+        "dest_ip"=> "192.168.2.5",		// IP des internen Gerätes
+        "dest_port"=> "80",				// Port des Gerätes
+        "enabled"=> "1",				// Aktiviere diese Regel 
+		"src"=>"openvpn",				// Port-Weiterleitung nur aus dem openVPN erlauben
+		"dest"=> "lan",					// Port-Weiterleitung in das LAN erlauben
+		"reflection"=> "1",				// NAT reflection bzw. NAT-Loopback
+		"priority"=> "10"				// Prorität der Regel 
+        );
+		
+TR_AddPortForwarding($RouterId,$data);
+```
+
+#### Aktualisieren einer Portforwarding-Regel 
+
+```php
+$RuleId = 1; // ID der Regel wird über TR_GetPortForwardings abgefragt
+
+$data = array(
+        "name"=> "Kamera_Garten", 		// Name für die Portweiterleitung
+        "proto"=> array("tcp"),			// Protokoll
+        "src_dport"=> "80",				// Externer Port
+        "dest_ip"=> "192.168.2.5",		// IP des internen Gerätes
+        "dest_port"=> "80",				// Port des Gerätes
+        "enabled"=> "1",				// Aktiviere diese Regel 
+		"src"=>"openvpn",				// Port-Weiterleitung nur aus dem openVPN erlauben
+		"dest"=> "lan",					// Port-Weiterleitung in das LAN erlauben
+		"reflection"=> "1",				// NAT reflection bzw. NAT-Loopback
+		"priority"=> "10"				// Prorität der Regel 
+        );
+		
+TR_UpdatePortForwarding($RouterId,strval($RuleId), $data);
+```
