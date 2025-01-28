@@ -157,20 +157,20 @@ class TeltonikaRouter extends IPSModule
 
         $curl = curl_init();
 
-        curl_setopt_array($curl, array(
-                CURLOPT_URL => $url .'/api/login',
-                CURLOPT_RETURNTRANSFER => true,
-                CURLOPT_ENCODING => '',
-                CURLOPT_MAXREDIRS => 10,
-                CURLOPT_TIMEOUT => $this->ReadPropertyInteger('Timeout'),
-                CURLOPT_FOLLOWLOCATION => true,
-                CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                CURLOPT_CUSTOMREQUEST => 'POST',
-                CURLOPT_SSL_VERIFYHOST => $verifyhost,
-                CURLOPT_SSL_VERIFYPEER => $this->ReadPropertyBoolean('VerifyPeer'),
-                CURLOPT_POSTFIELDS => $post,
-                CURLOPT_HTTPHEADER => array('Content-Type: application/json'),
-        ));
+
+        curl_setopt($curl, CURLOPT_URL, $url.'/api/login');
+        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'POST');
+        curl_setopt($curl, CURLOPT_POSTFIELDS, $post);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 2);
+        curl_setopt($curl, CURLOPT_TIMEOUT, $this->ReadPropertyInteger('Timeout'));
+        curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, $verifyhost);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, $this->ReadPropertyBoolean('VerifyPeer'));
+        curl_setopt($curl, CURLOPT_HTTPHEADER, array('Content-Type: application/json'));
+
+
 
         $response = curl_exec($curl);
         $err = curl_error($curl);
@@ -236,16 +236,20 @@ class TeltonikaRouter extends IPSModule
 
         */
 
-        if ($parameter == null || !array_key_exists('method', $parameter) || !array_key_exists('subpath', $parameter) || !array_key_exists('getparameter', $parameter)) {
+        if ($parameter == null || !array_key_exists('subpath', $parameter)) {
             $this->SendDebug(__FUNCTION__, 'Fehlerhafte Parameter', 0);
             return false;
         }
 
-        $method = strtolower($parameter['method']);
+        if (array_key_exists('method', $parameter)) {
+            $method = strtoupper($parameter['method']);
 
-        if (!($method == "get" || $method == "post" || $method == "delete" || $method == "put")) {
-            $this->SendDebug(__FUNCTION__, 'Methode nicht erlaubt', 0);
-            return false;
+            if (!($method == "GET" || $method == "POST" || $method == "PUT" || $method == "DELETE")) {
+                $this->SendDebug(__FUNCTION__, 'Methode nicht erlaubt', 0);
+                return false;
+            }
+        } else {
+            $method = "GET"; // Standard Methode
         }
 
         $postfield = "";
@@ -311,76 +315,33 @@ class TeltonikaRouter extends IPSModule
 
         $curl = curl_init();
 
-        if ($method == "post") {
-            curl_setopt_array($curl, array(
-                   CURLOPT_URL => $url,
-                   CURLOPT_RETURNTRANSFER => true,
-                   CURLOPT_ENCODING => '',
-                   CURLOPT_MAXREDIRS => 10,
-                   CURLOPT_TIMEOUT => $timeout,
-                   CURLOPT_FOLLOWLOCATION => true,
-                   CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                   CURLOPT_CUSTOMREQUEST => 'POST',
-                   CURLOPT_SSL_VERIFYHOST => $verifyhost,
-                   CURLOPT_SSL_VERIFYPEER => $this->ReadPropertyBoolean('VerifyPeer'),
-                   CURLOPT_POSTFIELDS => $postfield,
-                   CURLOPT_HTTPHEADER => array('Content-Type: application/json',"Authorization: Bearer $sessionId"),
-        ));
-        } elseif ($method == "delete") {
-            curl_setopt_array($curl, array(
-                   CURLOPT_URL => $url,
-                   CURLOPT_RETURNTRANSFER => true,
-                   CURLOPT_ENCODING => '',
-                   CURLOPT_MAXREDIRS => 10,
-                   CURLOPT_TIMEOUT => $timeout,
-                   CURLOPT_FOLLOWLOCATION => true,
-                   CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                   CURLOPT_CUSTOMREQUEST => 'DELETE',
-                   CURLOPT_SSL_VERIFYHOST => $verifyhost,
-                   CURLOPT_SSL_VERIFYPEER => $this->ReadPropertyBoolean('VerifyPeer'),
-                   CURLOPT_POSTFIELDS => $postfield,
-                   CURLOPT_HTTPHEADER => array('Content-Type: application/json',"Authorization: Bearer $sessionId"),
-        ));
-        } elseif ($method == "put") {
-            curl_setopt_array($curl, array(
-                   CURLOPT_URL => $url,
-                   CURLOPT_RETURNTRANSFER => true,
-                   CURLOPT_ENCODING => '',
-                   CURLOPT_MAXREDIRS => 10,
-                   CURLOPT_TIMEOUT => $timeout,
-                   CURLOPT_FOLLOWLOCATION => true,
-                   CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                   CURLOPT_CUSTOMREQUEST => 'PUT',
-                   CURLOPT_SSL_VERIFYHOST => $verifyhost,
-                   CURLOPT_SSL_VERIFYPEER => $this->ReadPropertyBoolean('VerifyPeer'),
-                   CURLOPT_POSTFIELDS => $postfield,
-                   CURLOPT_HTTPHEADER => array('Content-Type: application/json',"Authorization: Bearer $sessionId"),
-        ));
-        } else {
-            curl_setopt_array($curl, array(
-                    CURLOPT_URL => $url,
-                    CURLOPT_RETURNTRANSFER => true,
-                    CURLOPT_ENCODING => '',
-                    CURLOPT_MAXREDIRS => 10,
-                    CURLOPT_TIMEOUT => $timeout,
-                    CURLOPT_FOLLOWLOCATION => true,
-                    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-                    CURLOPT_CUSTOMREQUEST => 'GET',
-                    CURLOPT_SSL_VERIFYHOST => $verifyhost,
-                    CURLOPT_SSL_VERIFYPEER => $this->ReadPropertyBoolean('VerifyPeer'),
-                    CURLOPT_HTTPHEADER => array('Content-Type: application/json',"Authorization: Bearer $sessionId"),
-            ));
+        curl_setopt($curl, CURLOPT_URL, $url);
+        curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $method);
+
+        if ($postfield != "") {
+            curl_setopt($curl, CURLOPT_POSTFIELDS, $postfield);
         }
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($curl, CURLOPT_CONNECTTIMEOUT, 2);
+        curl_setopt($curl, CURLOPT_TIMEOUT, $timeout);
+        curl_setopt($curl, CURLOPT_FOLLOWLOCATION, true);
+        curl_setopt($curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_1);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, $verifyhost);
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, $this->ReadPropertyBoolean('VerifyPeer'));
+        curl_setopt($curl, CURLOPT_HTTPHEADER, array('Content-Type: application/json',"Authorization: Bearer $sessionId"));
+
+
         $response = curl_exec($curl);
         $err = curl_error($curl);
+        $httpcode = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 
-        $this->SendDebug(__FUNCTION__, 'Response: ' . $response, 0);
-
+        $this->SendDebug(__FUNCTION__, 'CURL Response: ' . $response, 0);
+        $this->SendDebug(__FUNCTION__, 'CURL Statuscode: ' . $httpcode, 0);
 
         curl_close($curl);
 
         if ($err) {
-            $this->SendDebug(__FUNCTION__, 'Error: ' . $err, 0);
+            $this->SendDebug(__FUNCTION__, 'CURL Error: ' . $err, 0);
             return false;
         }
 
@@ -693,14 +654,14 @@ class TeltonikaRouter extends IPSModule
 
         $response = ($this->ApiCall($parameter));
         $data = json_decode($response);
-       
+
         if ($data->apidata->success) {
             $this->SendDebug(__FUNCTION__, "Add Rule ".$postdata['name']. " erfolgreich", 0);
         }
         return $data;
     }
 
-    public function UpdatePortForwarding(string $id,array $data)
+    public function UpdatePortForwarding(string $id, array $data)
     {
 
         $defaultValues = array("id" => $id );
@@ -716,7 +677,7 @@ class TeltonikaRouter extends IPSModule
 
         $response = ($this->ApiCall($parameter));
         $data = json_decode($response);
-        
+
         if ($data->apidata->success) {
             $this->SendDebug(__FUNCTION__, "Update Rule ".$postdata['name']. " erfolgreich", 0);
         }
@@ -736,7 +697,7 @@ class TeltonikaRouter extends IPSModule
 
         $response = ($this->ApiCall($parameter));
         $data = json_decode($response);
-      
+
         if ($data->apidata->success) {
             $this->SendDebug(__FUNCTION__, "Delete Rule ID:".$id.  " erfolgreich", 0);
         }
@@ -753,7 +714,7 @@ class TeltonikaRouter extends IPSModule
 
         $response = ($this->ApiCall($parameter));
         $data = json_decode($response);
-        
+
         return $data;
     }
 
