@@ -224,7 +224,7 @@ class TeltonikaRouter extends IPSModule
 
         return $success;
     }
-    public function ApiCall($parameter)
+    public function ApiCall(array $parameter)
     {
         /*
 
@@ -243,7 +243,7 @@ class TeltonikaRouter extends IPSModule
 
         $method = strtolower($parameter['method']);
 
-        if (!($method == "get" || $method == "post"|| $method == "delete"|| $method == "put")) {
+        if (!($method == "get" || $method == "post" || $method == "delete" || $method == "put")) {
             $this->SendDebug(__FUNCTION__, 'Methode nicht erlaubt', 0);
             return false;
         }
@@ -356,7 +356,7 @@ class TeltonikaRouter extends IPSModule
                    CURLOPT_POSTFIELDS => $postfield,
                    CURLOPT_HTTPHEADER => array('Content-Type: application/json',"Authorization: Bearer $sessionId"),
         ));
-        } else  {
+        } else {
             curl_setopt_array($curl, array(
                     CURLOPT_URL => $url,
                     CURLOPT_RETURNTRANSFER => true,
@@ -681,6 +681,82 @@ class TeltonikaRouter extends IPSModule
         }
     }
 
+    public function AddPortForwarding(array $postdata)
+    {
+        $postfield = json_encode(array("data" => $postdata,));
+
+        $parameter = array( "method" => "POST",
+                            "postfield" => $postfield,
+                            "subpath" => "/api/firewall/port_forwards/config",
+                            "getparameter" => array()
+                                   );
+
+        $response = ($this->ApiCall($parameter));
+        $data = json_decode($response);
+       
+        if ($data->apidata->success) {
+            $this->SendDebug(__FUNCTION__, "Add Rule ".$postdata['name']. " erfolgreich", 0);
+        }
+        return $data;
+    }
+
+    public function UpdatePortForwarding(string $id,array $data)
+    {
+
+        $defaultValues = array("id" => $id );
+        $postdata = array_merge($defaultValues, $data);
+
+        $postfield = json_encode(array("data" => array($postdata),));
+
+        $parameter = array( "method" => "PUT",
+                            "postfield" => $postfield,
+                            "subpath" => "/api/firewall/port_forwards/config",
+                            "getparameter" => array()
+                                   );
+
+        $response = ($this->ApiCall($parameter));
+        $data = json_decode($response);
+        
+        if ($data->apidata->success) {
+            $this->SendDebug(__FUNCTION__, "Update Rule ".$postdata['name']. " erfolgreich", 0);
+        }
+
+        return $data;
+    }
+
+    public function DeletePortForwarding(string $id)
+    {
+        $postfield = json_encode(array("data" => array($id),));
+
+        $parameter = array( "method" => "DELETE",
+                            "postfield" => $postfield,
+                            "subpath" => "/api/firewall/port_forwards/config",
+                            "getparameter" => array()
+                                   );
+
+        $response = ($this->ApiCall($parameter));
+        $data = json_decode($response);
+      
+        if ($data->apidata->success) {
+            $this->SendDebug(__FUNCTION__, "Delete Rule ID:".$id.  " erfolgreich", 0);
+        }
+
+        return $data;
+    }
+
+
+    public function GetPortForwardings()
+    {
+        $parameter = array( "method" => "GET",
+                            "subpath" => "/api/firewall/port_forwards/config",
+                            "getparameter" => array()   );
+
+        $response = ($this->ApiCall($parameter));
+        $data = json_decode($response);
+        
+        return $data;
+    }
+
 
     private function Maintain()
     {
@@ -705,7 +781,7 @@ class TeltonikaRouter extends IPSModule
         $this->MaintainVariable('Temperature', '', 1, 'TR_Temperature', 1, false);
 
         $this->MaintainVariable('FailoverActiveInterface', $this->Translate('Failover Active Interface'), 3, '', 21, $this->ReadPropertyBoolean('ShowFailoverInfomation'));
-        
+
 
 
     }
