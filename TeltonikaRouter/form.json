@@ -38,14 +38,19 @@
 			]
 		},
 		{
-					"type": "CheckBox",
-					"name": "ShowModemInfomation",
-					"caption": "Show Modem Infomation"
+			"type": "CheckBox",
+			"name": "ShowModemInfomation",
+			"caption": "Show Modem Infomation"
 		},
 		{
-					"type": "CheckBox",
-					"name": "ShowFailoverInfomation",
-					"caption": "Show Failover Infomation"
+			"type": "CheckBox",
+			"name": "ShowTrafficInfomation",
+			"caption": "Show Traffic Infomation"
+		},
+		{
+			"type": "CheckBox",
+			"name": "ShowCcid",
+			"caption": "Show CCID"
 		},
 		{
 			"type": "NumberSpinner",

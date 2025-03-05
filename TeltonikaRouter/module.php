@@ -22,6 +22,8 @@ class TeltonikaRouter extends IPSModule
 
         $this->RegisterPropertyBoolean('ShowModemInfomation', true);
         $this->RegisterPropertyBoolean('ShowFailoverInfomation', false);
+        $this->RegisterPropertyBoolean('ShowTrafficInfomation', false);
+        $this->RegisterPropertyBoolean('ShowCcid', false);
 
         $this->RegisterPropertyBoolean('Ssl', false);
         $this->RegisterPropertyBoolean('VerifyHost', true);
@@ -75,9 +77,25 @@ class TeltonikaRouter extends IPSModule
 
     private function EnableLogging()
     {
+        $this->Logging(true);
+    }
+
+    private function DisableLogging()
+    {
+        $this->Logging(false);
+    }
+    private function Logging(bool $enabled)
+    {
         $archiveId = IPS_GetInstanceListByModuleID('{43192F0B-135B-4CE7-A0A7-1475603F3060}')[0];
 
-        $arr = ['Connection', 'Ping',  'Firmware', 'Uptime','Signal0', 'TxGBytes0', 'RxGBytes0', 'Temperature0', 'Band0', 'Provider0','Signal1', 'TxGBytes1', 'RxGBytes1', 'Temperature1', 'Band1', 'Provider1', 'Load'];
+        $arr = [    'Connection',
+                    'Ping',
+                    'Firmware',
+                    'Uptime',
+                    'Signal0', 'TxGBytes0', 'RxGBytes0', 'Temperature0', 'Band0', 'Provider0',
+                    'Signal1', 'TxGBytes1', 'RxGBytes1', 'Temperature1', 'Band1', 'Provider1', 
+                    'Load'
+                ];
 
         foreach ($arr as &$ident) {
             $id = @$this->GetIDForIdent($ident);
@@ -85,30 +103,20 @@ class TeltonikaRouter extends IPSModule
             if ($id == 0) {
                 continue;
             }
-            AC_SetLoggingStatus($archiveId, $id, true);
-            AC_SetAggregationType($archiveId, $id, 0); // 0 Standard, 1 Zähler
-            AC_SetGraphStatus($archiveId, $id, true);
-        }
-
-        IPS_ApplyChanges($archiveId);
-    }
-
-    private function DisableLogging()
-    {
-        $archiveId = IPS_GetInstanceListByModuleID('{43192F0B-135B-4CE7-A0A7-1475603F3060}')[0];
-        $arr = ['Online'];
-
-        foreach ($arr as &$ident) {
-            $id = $this->GetIDForIdent($ident);
-            if ($id == 0) {
-                continue;
+            if ($enabled) {
+                AC_SetLoggingStatus($archiveId, $id, true);
+                AC_SetAggregationType($archiveId, $id, 0); // 0 Standard, 1 Zähler
+                AC_SetGraphStatus($archiveId, $id, true);
+            } else {
+                AC_SetGraphStatus($archiveId, $id, false);
+                AC_SetLoggingStatus($archiveId, $id, false);
             }
-            AC_SetGraphStatus($archiveId, $id, false);
-            AC_SetLoggingStatus($archiveId, $id, false);
+
         }
 
         IPS_ApplyChanges($archiveId);
     }
+
     public function GetRouterConfiguratationPage()
     {
         $url = $this->ReadPropertyString('Host').":".$this->ReadPropertyInteger('Port');
@@ -311,7 +319,7 @@ class TeltonikaRouter extends IPSModule
         }
 
         $this->SendDebug(__FUNCTION__, 'URL:' . $url. ' Method:' . $method, 0);
-
+        $this->SendDebug(__FUNCTION__, 'SessionID:' . $sessionId, 0);
 
         $curl = curl_init();
 
@@ -432,10 +440,10 @@ class TeltonikaRouter extends IPSModule
                         $this->MaintainVariable('Provider'.$modemnumber, $modemname. $this->Translate('Provider'), 3, '', $modemnumber * 10 + 31, true);
                         $this->MaintainVariable('Band'.$modemnumber, $modemname. $this->Translate('Band'), 3, '', $modemnumber * 10 + 32, true);
                         $this->MaintainVariable('Signal'.$modemnumber, $modemname. $this->Translate('Signal (RSSI)'), 1, 'TR_Signal', $modemnumber * 10 + 33, true);
-                        $this->MaintainVariable('TxGBytes'.$modemnumber, $modemname. $this->Translate('Send GBytes'), 2, 'TR_Traffic', $modemnumber * 10 + 40, true);
-                        $this->MaintainVariable('RxGBytes'.$modemnumber, $modemname. $this->Translate('Receved GBytes'), 2, 'TR_Traffic', $modemnumber * 10 + 41, true);
+                        $this->MaintainVariable('TxGBytes'.$modemnumber, $modemname. $this->Translate('Send GBytes'), 2, 'TR_Traffic', $modemnumber * 10 + 40, $this->ReadPropertyBoolean('ShowTrafficInfomation'));
+                        $this->MaintainVariable('RxGBytes'.$modemnumber, $modemname. $this->Translate('Receved GBytes'), 2, 'TR_Traffic', $modemnumber * 10 + 41, $this->ReadPropertyBoolean('ShowTrafficInfomation'));
                         $this->MaintainVariable('Temperature'.$modemnumber, $modemname. $this->Translate('Temperature'), 1, 'TR_Temperature', $modemnumber * 10 + 50, true);
-                        $this->MaintainVariable('CCID'.$modemnumber, $modemname. $this->Translate('CCID'), 3, '', $modemnumber * 10 + 32, true);
+                        $this->MaintainVariable('CCID'.$modemnumber, $modemname. $this->Translate('CCID'), 3, '', $modemnumber * 10 + 32, $this->ReadPropertyBoolean('ShowCcid'));
 
                         $this->SendDebug(__FUNCTION__, 'Modem: '.$modemnumber.' Provider: ' . $modemData->provider, 0);
                         $this->SendDebug(__FUNCTION__, 'Modem: '.$modemnumber.' Signal: ' . $modemData->signal, 0);
@@ -448,11 +456,13 @@ class TeltonikaRouter extends IPSModule
                         }
 
                         $this->SetValue('Band'.$modemnumber, $modemData->band);
-                        $this->SetValue('CCID'.$modemnumber, $modemData->iccid);
-
-                        $this->SetValue('TxGBytes'.$modemnumber, $modemData->txbytes / 1073741824); // txbytes/1024/1024/1024 Umrechnung Byte auf GB
-                        $this->SetValue('RxGBytes'.$modemnumber, $modemData->rxbytes / 1073741824);
-
+                        if ($this->ReadPropertyBoolean('ShowCcid')) {
+                            $this->SetValue('CCID'.$modemnumber, $modemData->iccid);
+                        }
+                        if ($this->ReadPropertyBoolean('ShowTrafficInfomation')) {
+                            $this->SetValue('TxGBytes'.$modemnumber, $modemData->txbytes / 1073741824); // txbytes/1024/1024/1024 Umrechnung Byte auf GB
+                            $this->SetValue('RxGBytes'.$modemnumber, $modemData->rxbytes / 1073741824);
+                        }
                         $this->SetValue('Temperature'.$modemnumber, $modemData->temperature);
 
                     }

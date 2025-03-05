@@ -33,6 +33,8 @@
 			"Uptime": "Betriebszeit",
 			"Show Modem Infomation": "Modem Informationen anzeigen",
 			"Show Failover Infomation": "Failover Informationen anzeigen",
+			"Show Traffic Infomation": "Datenverbrauch anzeigen",
+			"Show CCID": "Kartennummer anzeigen",
 			"Failover Active Interface": "Failover aktives Interface",
 			"wan": "WAN",
 			"mob1s1a1": "SIM 1 Modem 1",
