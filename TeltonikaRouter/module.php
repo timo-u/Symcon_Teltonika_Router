@@ -11,11 +11,9 @@ class TeltonikaRouter extends IPSModule
         $this->RegisterVariableProfiles();
         $this->RegisterPropertyBoolean('Active', true);
         $this->RegisterPropertyString('Host', '192.168.2.1');
-        $this->RegisterPropertyInteger('Port', 80);
+        $this->RegisterPropertyInteger('Port', 443);
         $this->RegisterPropertyString('Username', '');
         $this->RegisterPropertyString('Password', '');
-
-        $this->RegisterPropertyInteger('Type', 0);
 
         $this->RegisterPropertyInteger('Timeout', 1);
         $this->RegisterPropertyInteger('UpdateInterval', 60);
@@ -25,9 +23,9 @@ class TeltonikaRouter extends IPSModule
         $this->RegisterPropertyBoolean('ShowTrafficInfomation', false);
         $this->RegisterPropertyBoolean('ShowCcid', false);
 
-        $this->RegisterPropertyBoolean('Ssl', false);
-        $this->RegisterPropertyBoolean('VerifyHost', true);
-        $this->RegisterPropertyBoolean('VerifyPeer', true);
+        $this->RegisterPropertyBoolean('Ssl', true);
+        $this->RegisterPropertyBoolean('VerifyHost', false);
+        $this->RegisterPropertyBoolean('VerifyPeer', false);
 
         $this->RegisterTimer('Update', $this->ReadPropertyInteger('UpdateInterval') * 1000, 'TR_UpdateValues($_IPS[\'TARGET\']);');
 
@@ -372,6 +370,17 @@ class TeltonikaRouter extends IPSModule
                 return false;
 
             }
+			if ($data->errors[0]->code == 121) { // Invalid session
+                $this->SendDebug(__FUNCTION__, 'Login failed for any reason', 0);
+                if(property_exists($data->errors[0], 'error'))
+				{
+					$this->SendDebug(__FUNCTION__, 'Error: '. $data->errors[0]->error, 0);
+				}
+				$this->SendDebug(__FUNCTION__, 'From firmware version 7.12 on RUTX family devices, HTTPS is enforced by default.', 0);
+                $this->SetStatus(204); // Login failed for any reason
+				return false;
+
+            }
         }
 
         $data = json_encode(array("apidata" => $data, "apierror" => $err, "apiparameter" => $parameter, "url" => $url ));
@@ -465,6 +474,7 @@ class TeltonikaRouter extends IPSModule
                         }
                         $this->SetValue('Temperature'.$modemnumber, $modemData->temperature);
 
+						$modemnumber = $modemnumber+1;
                     }
                 }
             }

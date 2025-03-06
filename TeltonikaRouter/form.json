@@ -6,71 +6,46 @@
 			"caption": "Active"
 		},
 		{
-			"type": "ValidationTextBox",
-			"name": "Host",
-			"caption": "Host"
-		},
-		{
-			"type": "NumberSpinner",
-			"name": "Port",
-			"caption": "Port",
-			"suffix": ""
-		},
-		{
-			"type": "ValidationTextBox",
-			"name": "Username",
-			"caption": "username"
-		},
-		{
-			"type": "PasswordTextBox",
-			"name": "Password",
-			"caption": "password"
-		},
-		{
-			"type": "Select",
-			"name": "Type",
-			"caption": "Type",
-			"options": [
-				{
-					"label": "Firmaware: >7.6.3 (API v1.1)",
-					"value": 0
-				}
-			]
-		},
-		{
-			"type": "CheckBox",
-			"name": "ShowModemInfomation",
-			"caption": "Show Modem Infomation"
-		},
-		{
-			"type": "CheckBox",
-			"name": "ShowTrafficInfomation",
-			"caption": "Show Traffic Infomation"
-		},
-		{
-			"type": "CheckBox",
-			"name": "ShowCcid",
-			"caption": "Show CCID"
-		},
-		{
-			"type": "NumberSpinner",
-			"name": "Timeout",
-			"caption": "Timeout",
-			"suffix": "s",
-			"minimum": 1,
-			"maximum": 60
-		},
-		{
-			"type": "NumberSpinner",
-			"name": "UpdateInterval",
-			"caption": "Update Interval",
-			"suffix": "s",
-			"minimum": 0
-		},
-		{
 			"type": "ExpansionPanel",
-			"caption": "Encryption settings",
+			"caption": "Connection settings",
+			"expanded":true,
 			"items": [
+				{
+					"type": "ValidationTextBox",
+					"name": "Host",
+					"caption": "Host"
+				},
+				{
+					"type": "NumberSpinner",
+					"name": "Port",
+					"caption": "Port",
+					"suffix": ""
+				},
+				{
+					"type": "ValidationTextBox",
+					"name": "Username",
+					"caption": "username"
+				},
+				{
+					"type": "PasswordTextBox",
+					"name": "Password",
+					"caption": "password"
+				},
+				{
+					"type": "NumberSpinner",
+					"name": "Timeout",
+					"caption": "Timeout",
+					"suffix": "s",
+					"minimum": 1,
+					"maximum": 60
+				},
+				{
+					"type": "NumberSpinner",
+					"name": "UpdateInterval",
+					"caption": "Update Interval",
+					"suffix": "s",
+					"minimum": 0
+				},
 				{
 					"type": "CheckBox",
 					"name": "Ssl",
@@ -85,6 +60,33 @@
 					"type": "CheckBox",
 					"name": "VerifyPeer",
 					"caption": "Verify Peer"
+				},
+				{ "type": "Label", "color":"FF0000", "caption": "Achtung! Seit Version 7.12 wird vom Router nur noch eine verschlüsselte Verbindung unterstützt." }
+			]
+		},
+		{
+			"type": "ExpansionPanel",
+			"caption": "Activate variables",
+			"items": [
+				{
+					"type": "CheckBox",
+					"name": "ShowModemInfomation",
+					"caption": "Show Modem Infomation"
+				},
+				{
+					"type": "CheckBox",
+					"name": "ShowFailoverInfomation",
+					"caption": "Show Failover Infomation"
+				},
+				{
+					"type": "CheckBox",
+					"name": "ShowTrafficInfomation",
+					"caption": "Show Traffic Infomation"
+				},
+				{
+					"type": "CheckBox",
+					"name": "ShowCcid",
+					"caption": "Show CCID"
 				}
 			]
 		}
@@ -98,17 +100,17 @@
 		{
 			"type": "Button",
 			"label": "Login",
-			"onClick": "echo IPS_RequestAction($id, \"Login\", '');"
+			"onClick": "IPS_RequestAction($id, \"Login\", '');"
 		},
 		{
 			"type": "Button",
 			"label": "Update Values",
-			"onClick": "echo IPS_RequestAction($id, \"UpdateValues\", '');"
+			"onClick": "IPS_RequestAction($id, \"UpdateValues\", '');"
 		},
 		{
 			"type": "Button",
 			"label": "Restart",
-			"onClick": "echo IPS_RequestAction($id, \"Reboot\", '');"
+			"onClick": "IPS_RequestAction($id, \"Reboot\", '');"
 		},
 		{
 			"type": "Button",
@@ -141,6 +143,11 @@
 			"code": 203,
 			"icon": "error",
 			"caption": "API Version Conflict"
+		},
+		{
+			"code": 204,
+			"icon": "error",
+			"caption": "Login failed for any reason"
 		}
 	]
 }
