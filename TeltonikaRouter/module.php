@@ -19,9 +19,10 @@ class TeltonikaRouter extends IPSModule
         $this->RegisterPropertyInteger('UpdateInterval', 60);
 
         $this->RegisterPropertyBoolean('ShowModemInfomation', true);
-        $this->RegisterPropertyBoolean('ShowFailoverInfomation', false);
+
         $this->RegisterPropertyBoolean('ShowTrafficInfomation', false);
         $this->RegisterPropertyBoolean('ShowCcid', false);
+        $this->RegisterPropertyBoolean('ShowFailoverInfomation', false);
 
         $this->RegisterPropertyBoolean('Ssl', true);
         $this->RegisterPropertyBoolean('VerifyHost', false);
@@ -58,7 +59,7 @@ class TeltonikaRouter extends IPSModule
                 $this->Reboot();
                 break;
             case "Login":
-                $this->Login(true);
+                return $this->Login(true);
                 break;
             case "UpdateValues":
                 $this->UpdateValues();
@@ -448,31 +449,45 @@ class TeltonikaRouter extends IPSModule
 
                         $this->MaintainVariable('Provider'.$modemnumber, $modemname. $this->Translate('Provider'), 3, '', $modemnumber * 10 + 31, true);
                         $this->MaintainVariable('Band'.$modemnumber, $modemname. $this->Translate('Band'), 3, '', $modemnumber * 10 + 32, true);
-                        $this->MaintainVariable('Signal'.$modemnumber, $modemname. $this->Translate('Signal (RSSI)'), 1, 'TR_Signal', $modemnumber * 10 + 33, true);
-                        $this->MaintainVariable('TxGBytes'.$modemnumber, $modemname. $this->Translate('Send GBytes'), 2, 'TR_Traffic', $modemnumber * 10 + 40, $this->ReadPropertyBoolean('ShowTrafficInfomation'));
-                        $this->MaintainVariable('RxGBytes'.$modemnumber, $modemname. $this->Translate('Receved GBytes'), 2, 'TR_Traffic', $modemnumber * 10 + 41, $this->ReadPropertyBoolean('ShowTrafficInfomation'));
-                        $this->MaintainVariable('Temperature'.$modemnumber, $modemname. $this->Translate('Temperature'), 1, 'TR_Temperature', $modemnumber * 10 + 50, true);
-                        $this->MaintainVariable('CCID'.$modemnumber, $modemname. $this->Translate('CCID'), 3, '', $modemnumber * 10 + 32, $this->ReadPropertyBoolean('ShowCcid'));
+                        $this->MaintainVariable('CCID'.$modemnumber, $modemname. $this->Translate('CCID'), 3, '', $modemnumber * 10 + 33, $this->ReadPropertyBoolean('ShowCcid'));
+                     	$this->MaintainVariable('Signal'.$modemnumber, $modemname. $this->Translate('Signal (RSSI)'), 1, 'TR_Signal', $modemnumber * 10 + 34, true);
+                        $this->MaintainVariable('TxGBytes'.$modemnumber, $modemname. $this->Translate('Send GBytes'), 2, 'TR_Traffic', $modemnumber * 10 + 35, $this->ReadPropertyBoolean('ShowTrafficInfomation'));
+                        $this->MaintainVariable('RxGBytes'.$modemnumber, $modemname. $this->Translate('Received GBytes'), 2, 'TR_Traffic', $modemnumber * 10 + 36, $this->ReadPropertyBoolean('ShowTrafficInfomation'));
+                        $this->MaintainVariable('Temperature'.$modemnumber, $modemname. $this->Translate('Temperature'), 1, 'TR_Temperature', $modemnumber * 10 + 39, true);
 
-                        $this->SendDebug(__FUNCTION__, 'Modem: '.$modemnumber.' Provider: ' . $modemData->provider, 0);
-                        $this->SendDebug(__FUNCTION__, 'Modem: '.$modemnumber.' Signal: ' . $modemData->signal, 0);
-                        $this->SendDebug(__FUNCTION__, 'Modem: '.$modemnumber.' Band: ' . $modemData->band, 0);
-                        $this->SendDebug(__FUNCTION__, 'Modem: '.$modemnumber.' CCID: ' . $modemData->iccid, 0);
-
-                        $this->SetValue('Provider'.$modemnumber, $modemData->provider);
-                        if ($modemData->signal != "N/A") {
-                            $this->SetValue('Signal'.$modemnumber, $modemData->signal);
-                        }
-
-                        $this->SetValue('Band'.$modemnumber, $modemData->band);
-                        if ($this->ReadPropertyBoolean('ShowCcid')) {
-                            $this->SetValue('CCID'.$modemnumber, $modemData->iccid);
-                        }
-                        if ($this->ReadPropertyBoolean('ShowTrafficInfomation')) {
-                            $this->SetValue('TxGBytes'.$modemnumber, $modemData->txbytes / 1073741824); // txbytes/1024/1024/1024 Umrechnung Byte auf GB
+						if (property_exists($modemData, 'provider'))
+						{
+							$this->SendDebug(__FUNCTION__, 'Modem: '.$modemnumber.' Provider: ' . $modemData->provider, 0);
+							$this->SetValue('Provider'.$modemnumber, $modemData->provider);
+						}	
+						if (property_exists($modemData, 'signal'))
+						{
+							$this->SendDebug(__FUNCTION__, 'Modem: '.$modemnumber.' Signal: ' . $modemData->signal, 0);
+							if ($modemData->signal != "N/A") {
+								$this->SetValue('Signal'.$modemnumber, $modemData->signal);
+							}
+						}	
+						if (property_exists($modemData, 'band'))
+						{
+							$this->SendDebug(__FUNCTION__, 'Modem: '.$modemnumber.' Band: ' . $modemData->band, 0);
+							$this->SetValue('Band'.$modemnumber, $modemData->band);
+						}	
+						if (property_exists($modemData, 'iccid'))
+						{
+							$this->SendDebug(__FUNCTION__, 'Modem: '.$modemnumber.' CCID: ' . $modemData->iccid, 0);
+							if ($this->ReadPropertyBoolean('ShowCcid')) {
+								$this->SetValue('CCID'.$modemnumber, $modemData->iccid);
+							}
+						}
+                         if ($this->ReadPropertyBoolean('ShowTrafficInfomation') && property_exists($modemData, 'txbytes') && property_exists($modemData, 'rxbytes'))
+						{
+							$this->SetValue('TxGBytes'.$modemnumber, $modemData->txbytes / 1073741824); // txbytes/1024/1024/1024 Umrechnung Byte auf GB
                             $this->SetValue('RxGBytes'.$modemnumber, $modemData->rxbytes / 1073741824);
                         }
+						if (property_exists($modemData, 'temperature'))
+						{
                         $this->SetValue('Temperature'.$modemnumber, $modemData->temperature);
+                        }
 
 						$modemnumber = $modemnumber+1;
                     }
@@ -743,7 +758,7 @@ class TeltonikaRouter extends IPSModule
     {
         $this->MaintainVariable('Ping', $this->Translate('Ping'), 0, 'TR_Online', 1, true);
         $this->MaintainVariable('Connection', $this->Translate('Connection'), 0, 'TR_Online', 2, true);
-        $this->MaintainVariable('IpAddress', $this->Translate('IP Address'), 3, '', 3, true);
+        $this->MaintainVariable('IpAddress', $this->Translate('IP-Address'), 3, '', 3, true);
 
         $this->MaintainVariable('DeviceName', $this->Translate('DeviceName'), 3, '', 21, true);
         $this->MaintainVariable('Firmware', $this->Translate('Firmware'), 3, '', 21, true);
