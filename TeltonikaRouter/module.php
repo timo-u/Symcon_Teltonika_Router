@@ -311,7 +311,7 @@ class TeltonikaRouter extends IPSModule
             $url = "http://".$url;
         }
 
-        if ($GetParameter != "") {
+        if ($GetParameter != "" && count($GetParameter)>0) {
             $url = $url.$subpath. "?".  implode("&", $GetParameter);
         } else {
             $url = $url.$subpath;
@@ -589,7 +589,7 @@ class TeltonikaRouter extends IPSModule
             }
 
             if ($data->apidata->data->device->version != "newest") {
-                echo "Neue Firmware vorhanden: (". $data->apidata->data->device->version . ")\r\n";
+                echo "Neue Firmware vorhanden: (". $data->apidata->data->device->version . ") (Step: 0)\r\n";
                 $this->WriteAttributeInteger("FirmwareUpdateStep", 1);
                 $firmwareUpdateStep = 1;
             }
@@ -612,7 +612,7 @@ class TeltonikaRouter extends IPSModule
             $data = json_decode($data);
 
             if (!$data->apidata->success) {
-                echo "Firmware-Download nicht erfolgreich gestartet.\r\n";
+                echo "Firmware-Download nicht erfolgreich gestartet. (Step: 1)\r\n";
                 return;
             }
             $this->WriteAttributeInteger("FirmwareUpdateStep", 2);
@@ -640,7 +640,7 @@ class TeltonikaRouter extends IPSModule
                 return;  // Abbruch wenn update nur im Zustand gestartet mit Ausgabe von Prozentwert
             }
             if ($data->apidata->data->process != "succeeded") {
-                echo "Firmware-Download noch nicht beendet\r\n";
+                echo "Firmware-Download noch nicht beendet. (Step: 2)\r\n";
                 return;  // Abbruch wenn update nicht vollständig
             }
             $this->WriteAttributeInteger("FirmwareUpdateStep", 3);
@@ -666,11 +666,11 @@ class TeltonikaRouter extends IPSModule
             $data = json_decode($data);
 
             if ($data->apidata->success) {
-                echo "Firmware-Upgrade erfolgreich gestartet.\r\n";
+                echo "Firmware-Upgrade erfolgreich gestartet. (Step: 3)\r\n";
                 $this->WriteAttributeInteger("FirmwareUpdateStep", 0);
                 return;
             } else {
-                echo "Firmware-Upgrade start fehlerhaft.\r\n";
+                echo "Firmware-Upgrade start fehlerhaft. (Step: 3)\r\n";
                 return;
             }
 
@@ -688,6 +688,11 @@ class TeltonikaRouter extends IPSModule
                                    );
 
         $response = ($this->ApiCall($parameter));
+		if($response == false)
+		{
+			echo "Fehlerhafte API-Antwort".PHP_EOL;
+			return false; 
+		}
         $data = json_decode($response);
 
         if ($data->apidata->success) {
@@ -711,6 +716,11 @@ class TeltonikaRouter extends IPSModule
                                    );
 
         $response = ($this->ApiCall($parameter));
+		if($response == false)
+		{
+			echo "Fehlerhafte API-Antwort".PHP_EOL;
+			return false; 
+		}
         $data = json_decode($response);
 
         if ($data->apidata->success) {
@@ -731,6 +741,11 @@ class TeltonikaRouter extends IPSModule
                                    );
 
         $response = ($this->ApiCall($parameter));
+		if($response == false)
+		{
+			echo "Fehlerhafte API-Antwort".PHP_EOL;
+			return false; 
+		}
         $data = json_decode($response);
 
         if ($data->apidata->success) {
@@ -748,11 +763,78 @@ class TeltonikaRouter extends IPSModule
                             "getparameter" => array()   );
 
         $response = ($this->ApiCall($parameter));
+		if($response == false)
+		{
+			echo "Fehlerhafte API-Antwort".PHP_EOL;
+			return false; 
+		}
         $data = json_decode($response);
 
         return $data;
     }
+	private function GetSpeedtestOptions()
+    {
+        $parameter = array( "method" => "GET",
+                            "subpath" => "/api/speedtest/options",
+                            "getparameter" => array()   );
 
+        $response = ($this->ApiCall($parameter));
+		if($response == false)
+		{
+			echo "Fehlerhafte API-Antwort".PHP_EOL;
+			return false; 
+		}
+        $data = json_decode($response);
+		$this->SendDebug(__FUNCTION__, "response: ". $response, 0);
+        return $data;
+    }
+	
+	public function GetSpeedtestStatus()
+    {
+        $parameter = array( "method" => "GET",
+                            "subpath" => "/api/speedtest/status",
+                            "getparameter" => array()   );
+
+        $response = ($this->ApiCall($parameter));
+		if($response == false)
+		{
+			echo "Fehlerhafte API-Antwort".PHP_EOL;
+			return false; 
+		}
+        $data = json_decode($response);
+		$this->SendDebug(__FUNCTION__, "response: ". $response, 0);
+        return $data;
+    }
+	
+	public function StartSpeedtest(string $ServerUrl)
+    {
+		if($ServerUrl== null || $ServerUrl =="")
+		{
+		$this->SendDebug(__FUNCTION__, "Starte Speedtest ohne definierten Server.", 0);
+		$ServerUrl = JSON_DECODE(JSON_ENCODE($this->GetSpeedtestOptions()),true)['apidata']['data'][0]['url'];
+		$this->SendDebug(__FUNCTION__, "URL für ersten hinterlegten Server: ". $ServerUrl, 0);
+		}
+		
+		$this->SendDebug(__FUNCTION__, "Starte Speedtest zu Server: ". $ServerUrl, 0);
+		
+        $postfield = json_encode(array("data" => array("url" =>$ServerUrl)));
+
+        $parameter = array( "method" => "POST",
+                            "postfield" => $postfield,
+                            "subpath" => "/api/speedtest/actions/start",
+                            "getparameter" => array()
+                                   );
+
+        $response = ($this->ApiCall($parameter));
+		if($response == false)
+		{
+			echo "Fehlerhafte API-Antwort".PHP_EOL;
+			return false; 
+		}
+        $data = json_decode($response);
+
+        return $data;
+    }
 
     private function Maintain()
     {
