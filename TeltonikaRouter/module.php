@@ -24,6 +24,10 @@ class TeltonikaRouter extends IPSModule
         $this->RegisterPropertyBoolean('ShowCcid', false);
         $this->RegisterPropertyBoolean('ShowFailoverInfomation', false);
 
+        $this->RegisterPropertyBoolean('ShowDataUsage', false);
+        $this->RegisterPropertyInteger('DataUsageInterval', 3);
+        $this->RegisterPropertyBoolean('ShowDataUsageSum', false);
+
         $this->RegisterPropertyBoolean('Ssl', true);
         $this->RegisterPropertyBoolean('VerifyHost', false);
         $this->RegisterPropertyBoolean('VerifyPeer', false);
@@ -93,6 +97,7 @@ class TeltonikaRouter extends IPSModule
                     'Uptime',
                     'Signal0', 'TxGBytes0', 'RxGBytes0', 'Temperature0', 'Band0', 'Provider0',
                     'Signal1', 'TxGBytes1', 'RxGBytes1', 'Temperature1', 'Band1', 'Provider1', 
+                    'DataUsageTxGBytes', 'DataUsageRxGBytes', 'DataUsageSumGBytes',
                     'Load'
                 ];
 
@@ -539,6 +544,63 @@ class TeltonikaRouter extends IPSModule
             }
         }
 
+        if ($this->ReadPropertyBoolean('ShowDataUsage')) {
+
+            switch($this->ReadPropertyInteger('DataUsageInterval')){
+            case 1: // Day  ==> Stundenweise seit 00:00 Uhr
+                $interval = "day";
+                break;
+            case 2: // Week ==> Tageweise seit Montag
+                $interval = "week";
+                break;
+            case 3: // Month ==> Tageweise seit 1. des Monats
+                $interval = "month";
+                break;
+            case 4: // Month ==> Tageweise seit 1. des Jahres
+                $interval = "year";
+                break;
+            default: // Total ==> Tageweise seit aufzeichnung
+                $interval = "total";
+            
+            }
+              $this->SendDebug(__FUNCTION__, 'Gat DataUsage for interval: ' . $interval, 0);
+
+            $parameter = array( "method" => "get",
+                                "subpath" => "/api/data_usage/".$interval."/status",
+                                "getparameter" => array() );
+            $data =  $this->ApiCall($parameter);
+
+            if ($data != false) {
+                $data = json_decode($data);
+                if (property_exists($data, 'apidata') && property_exists($data->apidata, 'data')) {
+                    $rxs = 0.0;
+                    $txs = 0.0;
+                    foreach ($data->apidata->data as $entry) {
+                        $rxs += ($entry[1]/1024/1024/1024);
+                        $txs += ($entry[2]/1024/1024/1024);
+                    }
+                    
+                    $this->SetValue('DataUsageRxGBytes', $rxs);
+                    $this->SetValue('DataUsageTxGBytes', $txs);
+                    $this->SendDebug(__FUNCTION__, 'DataUsageTxGBytes: ' . $txs. ' GB | DataUsageRxGBytes: ' . $rxs. ' GB', 0);
+
+
+                    if($this->ReadPropertyBoolean('ShowDataUsageSum')){
+                        $sum = $rxs+$txs;
+                        $this->SetValue('DataUsageSumGBytes', $sum);
+                        $this->SendDebug(__FUNCTION__, 'DataUsageSumGBytes: ' . $sum. ' GB', 0);
+
+                    }
+
+                   
+                }
+            }
+        }
+
+
+
+
+
 
     }
 
@@ -845,6 +907,11 @@ class TeltonikaRouter extends IPSModule
         $this->MaintainVariable('DeviceName', $this->Translate('DeviceName'), 3, '', 21, true);
         $this->MaintainVariable('Firmware', $this->Translate('Firmware'), 3, '', 21, true);
         $this->MaintainVariable('Serial', $this->Translate('Serial'), 3, '', 21, true);
+
+        $this->MaintainVariable('DataUsageTxGBytes', $this->Translate('Data-Usage Send'), 2, 'TR_Traffic', 60, $this->ReadPropertyBoolean('ShowDataUsage'));
+        $this->MaintainVariable('DataUsageRxGBytes', $this->Translate('Data-Usage Received'), 2, 'TR_Traffic', 61, $this->ReadPropertyBoolean('ShowDataUsage'));
+        $this->MaintainVariable('DataUsageSumGBytes', $this->Translate('Data-Usage Sum'), 2, 'TR_Traffic', 62, $this->ReadPropertyBoolean('ShowDataUsage')&& $this->ReadPropertyBoolean('ShowDataUsageSum'));
+
 
 
         $this->MaintainVariable('Load', $this->Translate('CPU load'), 2, 'TR_Percent', 99, true);

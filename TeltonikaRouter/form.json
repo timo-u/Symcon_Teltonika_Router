@@ -8,7 +8,7 @@
 		{
 			"type": "ExpansionPanel",
 			"caption": "Connection settings",
-			"expanded":true,
+			"expanded": true,
 			"items": [
 				{
 					"type": "ValidationTextBox",
@@ -61,7 +61,11 @@
 					"name": "VerifyPeer",
 					"caption": "Verify Peer"
 				},
-				{ "type": "Label", "color":"FF0000", "caption": "Achtung! Seit Version 7.12 wird vom Router nur noch eine verschlüsselte Verbindung unterstützt." }
+				{
+					"type": "Label",
+					"color": "FF0000",
+					"caption": "Achtung! Seit Version 7.12 wird vom Router nur noch eine verschlüsselte Verbindung unterstützt."
+				}
 			]
 		},
 		{
@@ -87,6 +91,43 @@
 					"type": "CheckBox",
 					"name": "ShowCcid",
 					"caption": "Show CCID"
+				},
+				{
+					"type": "CheckBox",
+					"name": "ShowDataUsage",
+					"caption": "Show Data-Usage"
+				},
+				{
+					"type": "Select",
+					"name": "DataUsageInterval",
+					"caption": "Data-Usage Interval",
+					"options": [
+						{
+							"caption": "Day",
+							"value": 1
+						},
+						{
+							"caption": "Week",
+							"value": 2
+						},
+						{
+							"caption": "Month",
+							"value": 3
+						},
+						{
+							"caption": "Year",
+							"value": 4
+						},
+						{
+							"caption": "Total",
+							"value": 5
+						}
+					]
+				},
+				{
+					"type": "CheckBox",
+					"name": "ShowDataUsageSum",
+					"caption": "Show Data-Usage Sum"
 				}
 			]
 		}

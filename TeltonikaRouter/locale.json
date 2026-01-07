@@ -28,6 +28,10 @@
 			"Signal (RSSI)": "Signal (RSSI)",
 			"Send GBytes": "Gesendete GBytes",
 			"Received GBytes": "Empfangene GBytes",
+			"Data-Usage Send": "Datenverbrauch Gesendet",
+			"Data-Usage Received": "Datenverbrauch Empfangen",
+			"Data-Usage Sum": "Datenverbrauch Summe",
+			"Show Data-Usage Sum": "Datenverbrauch Summe anzeigen",
 			"Temperature": "Temperatur",
 			"CCID": "CCID",
 			"Modem": "Modem",
@@ -39,12 +43,19 @@
 			"Show Failover Infomation": "Failover Informationen anzeigen",
 			"Show Traffic Infomation": "Datenverbrauch anzeigen",
 			"Show CCID": "Kartennummer anzeigen",
+			"Show Data-Usage": "Datenverbrauch anzeigen",
 			"Failover Active Interface": "Failover aktives Interface",
 			"wan": "WAN",
 			"mob1s1a1": "SIM 1 Modem 1",
 			"mob1s2a1": "SIM 2 Modem 1",
 			"mob2s1a1": "SIM 1 Modem 2",
-			"mob2s2a1": "SIM 2 Modem 2"
+			"mob2s2a1": "SIM 2 Modem 2",
+			"Data-Usage Interval": "Datenverbrauch Intervall",
+			"Day": "Tag",
+			"Week": "Woche",
+			"Month": "Monat",
+			"Year": "Jahr",
+			"Total": "Gesamt"
 		}
 	}
 }
